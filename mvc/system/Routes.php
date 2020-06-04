@@ -5,34 +5,32 @@ namespace system;
 class Routes {
 	
 	function __construct($components){
-		$directory = "controllers".DIRECTORY_SEPARATOR.$components[0]."php";
 		
 		if(!empty($components[0])){
+			$directory = "controllers".DIRECTORY_SEPARATOR.$components[0]."php";
+			$ctrl_name = $components[0];
+
 			if(file_exists($directory)){
-				$class_name = "controllers".DIRECTORY_SEPARATOR.ucfirst($components[0]);
+				$class_name = "controllers\\".ucfirst($ctrl_name);
 				if(class_exists($class_name)){
-					$object = new $class_name;
+					$ctrl_obj = new $class_name;
 					if(!empty($components[1])){
-						if(method_exists($object, $components[1])){
+						if(method_exists($ctrl_obj, $components[1])){
 							$method = $components[1];
-							$parameters = array();
-							$length=count($components);
-							$i=2;
-							while($i<$length){
-								if(!empty($components[$i])){
-									$parameter = $components[$i];
-									array_push($parameters, $parameter);
-									$i++;
-								}
-							}
-							$object->$method; //how do i pass the parameters individually??
+							$params = array_slice($components, 2);
+							call_user_func_array([$ctrl_obj, $method], $params);
 						}
 						else{
-							echo "Method ".$components[1]." not found.";
+							echo "Method ".$components[1]."() not found.";
 						}
 					}
 					else{
-						//TO DO
+						if(method_exists($ctrl_obj, "index")){
+							$ctrl_obj->index();
+						}
+						else{
+							echo "Method index() not found.";
+						}
 					}
 				}
 				else{
@@ -44,7 +42,19 @@ class Routes {
 			}
 		}
 		else{
-			//TO DO
+			$default_class = "controllers\\Main";
+			if(class_exists($default_class)){
+				$default_obj = new $default_class;
+				if(method_exists($default_obj, "index")){
+					$default_obj->index();
+				}
+				else{
+					echo "Method index() of class Main not found.";
+				}
+			}
+			else{
+				echo "Class Main not found.";
+			}
 		}
 	}
 	
